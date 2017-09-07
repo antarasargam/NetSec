@@ -71,8 +71,6 @@ def BasicCtoFTest1():
     packet4.SessionID = 1
     packet4.finalvalue = packet3.value*(9/5) + 32
 
-    #print ("Converted value is: ",packet4.finalvalue)
-
     packet4Bytes = packet4.__serialize__()
     packet4a = Conversion.Deserialize(packet4Bytes)
     assert packet4 == packet4a
