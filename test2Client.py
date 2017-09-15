@@ -8,8 +8,8 @@ from playground.network.testing import MockTransportToStorageStream
 from playground.network.testing import MockTransportToProtocol
 import random
 
-#from playground.common import logging as p_logging
-#p_logging.EnablePresetLogging(p_logging.PRESET_TEST)
+from playground.common import logging as p_logging
+p_logging.EnablePresetLogging(p_logging.PRESET_TEST)
 
 
 # Client Requesting for Conversion
@@ -62,21 +62,22 @@ class MyClient(asyncio.Protocol):
     def connection_made(self, transport):
         print("Client Connection made!")
         self.transport = transport
-        self.deserializer = RequestConversion.Deserializer()
+        self.deserializer = PacketType.Deserializer()
 
     def data_received(self, data):
+        print ("calling data_rec")
         self.deserializer = PacketType.Deserializer()
         self.deserializer.update(data)
 
-        ClientPacket2 = SendData()
-        ClientPacket2.SessionID = 0
+        #ClientPacket2.SessionID = 0
         pair_ID[0] = "Client_Request"
 
         for packet in self.deserializer.nextPackets():
             print (packet)
-            if (isinstance(packet, RequestDetails) and pair_ID[0] == "Client_Request"):
 
-                #ClientPacket2 = SendData()
+            if isinstance(packet, RequestDetails) and pair_ID[0] == "Client_Request":
+                print ("hello_1")
+                ClientPacket2 = SendData()
                 ClientPacket2.SessionID = packet.SessionID
                 ClientPacket2.metricFrom = "Celsius"
                 ClientPacket2.metricTo = "Fahrenheit"
@@ -97,7 +98,7 @@ class MyClient(asyncio.Protocol):
         return self.input_metric
 
     def send(self):
-
+        print ("Packet Sent")
         packet = RequestConversion()
         self.transport.write(packet.__serialize__())
 
