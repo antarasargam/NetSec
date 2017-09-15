@@ -45,28 +45,28 @@ class Conversion(PacketType):
 class MyServer(asyncio.Protocol):
 
     def __init__(self):
-        self._transport = None
-        #self._deserializer = PacketType.Deserializer()
+        self.transport = None
+        self.deserializer = PacketType.Deserializer()
 
     def connection_made(self, transport ):
-        self._transport = transport
         print ("Server Connection made!")
+        self.transport = transport
         self.SessionID = random.randrange(1,50,1)
         #pair[self.SessionID] = "Client_Hello"
 
     def data_received(self, data):
         print ("Hi???")
         print (data)
-        self._deserializer = PacketType.Deserializer()
-        self._deserializer.update(data)
-        for packet in self._deserializer.nextPackets():
+        self.deserializer = PacketType.Deserializer()
+        self.deserializer.update(data)
+        for packet in self.deserializer.nextPackets():
             if (packet.DEFINITION_IDENTIFIER == "Antara.Packet1"):
                 Serverpacket1 = RequestDetails()
                 Serverpacket1.SessionID = self.SessionID
                 Serverpacket1.metric = "C to F"
                 Serverbytes1 = Serverpacket1.__serialize__()
                 #pair[self.SessionID] = "Requesting_Details"
-                self._transport.write(Serverbytes1)
+                self.transport.write(Serverbytes1)
             elif (packet.DEFINITION_IDENTIFIER == "Antara.Packet3"):
                 print ("Enters packet2")
                 Serverpacket2 = Conversion()
@@ -75,19 +75,21 @@ class MyServer(asyncio.Protocol):
                 print (Serverpacket2)
                 print ("Final value is: ",Serverpacket2.finalvalue)
                 Serverpacket2bytes = Serverpacket2.__serialize__()
-                self._transport.write(Serverpacket2bytes)
+                self.transport.write(Serverpacket2bytes)
 
             else:
                 print ("No packet :(")
-                self._transport.close()
+                self.transport.close()
 
     def connection_lost(self, exc):
-        self._transport = None
+        self.transport = None
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
+    loop.set_debug(enabled=True)
     coro = playground.getConnector().create_playground_server(lambda: MyServer(), 101)
     server = loop.run_until_complete(coro)
+    print ("Server's coro is done")
     loop.run_forever()
     loop.close()
 
