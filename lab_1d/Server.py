@@ -42,6 +42,10 @@ class Conversion(PacketType):
 
     FIELDS = [("SessionID", UINT32), ("finalvalue", UINT32)]
 
+global pair_ID_
+pair_ID = {}
+
+
 class MyServer(asyncio.Protocol):
 
     def __init__(self):
@@ -52,20 +56,24 @@ class MyServer(asyncio.Protocol):
         print ("Server Connection made!")
         self.transport = transport
         self.SessionID = random.randrange(1,50,1)
-        #pair[self.SessionID] = "Client_Hello"
+        pair_ID[self.SessionID] = "Client_Hello"
+        print (pair_ID[self.SessionID])
 
     def data_received(self, data):
         self.deserializer = PacketType.Deserializer()
         self.deserializer.update(data)
         for packet in self.deserializer.nextPackets():
-            if (packet.DEFINITION_IDENTIFIER == "Antara.Packet1"):
+            if isinstance(packet, RequestConversion) and pair_ID[self.SessionID] == "Client_Hello":
+                print ("hello")
                 Serverpacket1 = RequestDetails()
                 Serverpacket1.SessionID = self.SessionID
                 Serverpacket1.metric = "C to F"
                 Serverbytes1 = Serverpacket1.__serialize__()
-                #pair[self.SessionID] = "Requesting_Details"
                 self.transport.write(Serverbytes1)
-            elif (packet.DEFINITION_IDENTIFIER == "Antara.Packet3"):
+                #print (Serverbytes1)
+                pair_ID[self.SessionID] = "Requesting_Details"
+
+            elif isinstance(packet, SendData) and pair_ID[packet.SessionID] == "Requesting_Details":
                 #print ("Enters packet2")
                 Serverpacket2 = Conversion()
                 Serverpacket2.SessionID = packet.SessionID
