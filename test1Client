@@ -11,6 +11,7 @@ import random
 #from playground.common import logging as p_logging
 #p_logging.EnablePresetLogging(p_logging.PRESET_TEST)
 
+
 # Client Requesting for Conversion
 
 class RequestConversion(PacketType):
@@ -48,27 +49,34 @@ class MyClient(asyncio.Protocol):
         self.message = message"""
 
     def __init__(self, callback = None):
+        self.buffer = ""
         if callback:
             self.callback = callback
+            print("It's in callback_1")
         else:
             self.callback = print
 
-        self._transport = None
-        print ("It's in callback")
-        self._deserializer = RequestConversion.Deserializer()
+        self.transport = None
+        self.deserializer = PacketType.Deserializer()
+        #print (PacketType)
+        #print ("Done with deserial  ")
+
+    def close(self):
+        self.__sendMessageActual("__QUIT__")
 
     def connection_made(self, transport):
-        self._transport = transport
         print("Client Connection made!")
-        self.message = message.__serialize__()
-        print (self.message)
-        self._transport.write(self.message)
-        self._deserializer = PacketType.Deserializer()
+        self.transport = transport
+
+        #self.message = message.__serialize__()
+        #print (self.message)
+        #self._transport.write(self.message)
+        self.deserializer = RequestConversion.Deserializer()
 
     def data_received(self, data):
-        self._deserializer = PacketType.Deserializer()
-        self._deserializer.update(data)
-        for packet in self._deserializer.nextPackets():
+        self.deserializer = PacketType.Deserializer()
+        self.deserializer.update(data)
+        for packet in self.deserializer.nextPackets():
             print (packet)
             if (packet.DEFINITION_IDENTIFIER == "Antara.Packet2"):
 
@@ -79,7 +87,7 @@ class MyClient(asyncio.Protocol):
                 ClientPacket2.value = self.input_value()
                 ClientPacket2bytes = ClientPacket2.__serialize__()
                 #pair[packet.SessionID] = "Data_Sent"
-                self._transport.write(ClientPacket2bytes)
+                self.transport.write(ClientPacket2bytes)
                 print("Found packet - 1 from server!")
 
             elif (isinstance(packet, Conversion)):
@@ -87,50 +95,65 @@ class MyClient(asyncio.Protocol):
 
             else:
                 print ("No packet")
-                self._transport.close()
+                self.transport.close()
 
     def input_value(self):
         self.input_metric = input ("What value to convert: ")
         return self.input_metric
 
+    def send(self):
+
+        packet = RequestConversion()
+        self.transport.write(packet.__serialize__())
+
     def connection_lost(self, exc):
-        self._transport = None
+        self.transport = None
 
 class ControlProtocol:
     def __init__(self):
         self.txProtocol = None
-        self.param = RequestConversion()
+        #self.param = RequestConversion().__serialize__()
+        #self.param = "tada"
 
     def buildProtocol(self):
         return MyClient(self.callback)
+        #Client1 = MyClient()
+        #Client1.connection_made()
 
     def connect(self, txProtocol):
+        print ("Calling connect")
         self.txProtocol = txProtocol
         print ("Connection to Server established")
         self.txProtocol = txProtocol
-        asyncio.get_event_loop().add_reader(self.stdinAlert)
+        self.txProtocol.send()
+        #asyncio.get_event_loop().add_reader(self.param, self.stdinAlert)
 
-    def callback(self, message):
+    def callback(self):
         print ("this is the message")
         sys.stdout.flush()
         #message = RequestConversion()
         #self.message = message
 
-    def stdinAlert(self):
-        data = self.param
-        self.txProtocol.send(data)
+    #def stdinAlert(self):
+    #    print ("Entered Stdinput")
+    #    data = self.param
+    #    self.txProtocol.send(data)
 
 
 
 
 if __name__ == "__main__":
 
+    #mode = '20174.1.1.1'
     loop = asyncio.get_event_loop()
+    loop.set_debug(enabled=True)
     control = ControlProtocol()
     #message = RequestConversion()
-    coro = playground.getConnector().create_playground_connection(control.buildProtocol(), '20174.1.1.2', 101)
-
+    coro = playground.getConnector().create_playground_connection(control.buildProtocol, '20174.1.1.1', 101)
     transport, protocol = loop.run_until_complete(coro)
+    print ("Done with the coro")
+    #print ("Connected to the server")
+    #print ("DOne with coro " + str(protocol))
     control.connect(protocol)
     loop.run_forever()
     loop.close()
