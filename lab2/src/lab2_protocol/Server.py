@@ -8,56 +8,6 @@ from playground.network.packet.fieldtypes.attributes import Optional
 from playground.network.common.Protocol import StackingProtocol, StackingProtocolFactory, StackingTransport
 import sys 
 
-class RequestToBuy(PacketType):
-    DEFINITION_IDENTIFIER = "RequestToBuy"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-
-             ]
-
-class RequestItem(PacketType):
-    DEFINITION_IDENTIFIER = "RequestItem"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-
-             ]
-
-class SendItem(PacketType):
-    DEFINITION_IDENTIFIER = "SendItem"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-            ("Item", STRING),
-             ]
-
-
-class RequestMoney(PacketType):
-    DEFINITION_IDENTIFIER = "RequestMoney"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-        ("Amount", UINT32)
-             ]
-
-
-class SendMoney(PacketType):
-    DEFINITION_IDENTIFIER = "SendMoney"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-        ("Cash", UINT32)
-             ]
-
-class FinishTransaction(PacketType):
-    DEFINITION_IDENTIFIER = "FinishTransaction"
-    DEFINITION_VERSION = "1.0"
-
-    FIELDS = [
-
-             ]
-
 class PEEP(PacketType):
 
     DEFINITION_IDENTIFIER = "PEEP.Packet"
