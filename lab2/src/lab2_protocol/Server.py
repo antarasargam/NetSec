@@ -121,6 +121,11 @@ class PEEPServerProtocol(StackingProtocol):
             elif pkt.Type == 5:
                  print("================ Server received connection close from client. Closing socket.===============\n")
 
+    def write(self,data):
+        print ("=================== Writing Data down ================\n")
+        self.transport.write(data)
+
+
 Serverfactory = StackingProtocolFactory(lambda: PEEPServerProtocol())
 
  
